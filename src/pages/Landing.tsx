@@ -82,7 +82,7 @@ export default function Landing() {
       <section className="py-16 md:py-24">
         <div className="container px-4">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold">Why Choose PriceScout?</h2>
+            <h2 className="mb-4 text-3xl font-bold">Why Choose WebCrawler?</h2>
             <p className="text-muted-foreground">Compare, analyze, and save on every purchase</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -208,7 +208,7 @@ export default function Landing() {
         <div className="container px-4 text-center">
           <h2 className="mb-4 text-3xl font-bold">Ready to Start Saving?</h2>
           <p className="mb-8 text-lg opacity-90">
-            Join thousands of smart shoppers who use PriceScout to find the best deals.
+            Join thousands of smart shoppers who use WebCrawler to find the best deals.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" variant="secondary" asChild>
@@ -230,11 +230,11 @@ export default function Landing() {
                 <Search className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="font-bold text-xl">
-                Price<span className="text-primary">Scout</span>
+                Web<span className="text-primary">Crawler</span>
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 PriceScout. All rights reserved.
+              © 2024 WebCrawler. All rights reserved.
             </p>
           </div>
         </div>

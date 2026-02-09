@@ -49,7 +49,7 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
             <Search className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="hidden font-bold text-xl sm:inline-block">
-            Price<span className="text-primary">Scout</span>
+            Web<span className="text-primary">Crawler</span>
           </span>
         </Link>
 

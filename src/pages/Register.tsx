@@ -43,7 +43,8 @@ export default function Register() {
 
     try {
       await register(name, email, password);
-      navigate('/');
+      // Navigate to email verification with the email
+      navigate('/verify-email', { state: { email } });
     } catch (err) {
       setError('An error occurred. Please try again.');
     } finally {
@@ -60,7 +61,7 @@ export default function Register() {
               <Search className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="font-bold text-2xl">
-              Price<span className="text-primary">Scout</span>
+              Web<span className="text-primary">Crawler</span>
             </span>
           </Link>
         </div>

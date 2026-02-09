@@ -43,7 +43,7 @@ export default function Login() {
               <Search className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="font-bold text-2xl">
-              Price<span className="text-primary">Scout</span>
+              Web<span className="text-primary">Crawler</span>
             </span>
           </Link>
         </div>

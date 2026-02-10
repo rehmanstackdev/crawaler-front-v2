@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,8 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Search, Menu, User, LogOut, Settings, LayoutDashboard } from 'lucide-react';
-import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Search, Menu, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -19,9 +21,23 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+
+  const storedUser = localStorage.getItem('user');
+  const user = storedUser ? JSON.parse(storedUser) : null;
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || '');
+      setProfileEmail(user.email || '');
+    }
+  }, [user?.name, user?.email]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +47,18 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
   };
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
     navigate('/');
+  };
+
+  const handleProfileSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const nextUser = { ...user, name: profileName, email: profileEmail };
+    localStorage.setItem('user', JSON.stringify(nextUser));
+    toast.success('Profile updated successfully');
+    setProfileOpen(false);
   };
 
   return (
@@ -89,10 +115,14 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">
+                  <button
+                    type="button"
+                    className="flex w-full items-center cursor-pointer"
+                    onClick={() => setProfileOpen(true)}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Profile
-                  </Link>
+                  </button>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
@@ -102,12 +132,6 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -127,6 +151,40 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
           )}
         </div>
       </div>
+
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Profile</DialogTitle>
+            <DialogDescription>Update your name and email.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleProfileSave} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="profileName">Full Name</Label>
+              <Input
+                id="profileName"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileEmail">Email</Label>
+              <Input
+                id="profileEmail"
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                required
+                disabled
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import authService from '@/services/auth.Service';
+import { toast } from 'sonner';
+
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -19,6 +22,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,19 +38,17 @@ export default function Register() {
       return;
     }
 
-    if (!agreeTerms) {
-      setError('Please agree to the terms and conditions');
-      return;
-    }
 
     setIsLoading(true);
 
     try {
-      await register(name, email, password);
-      // Navigate to email verification with the email
+      await authService.register({ name, email, password });
+      toast.success('Account created successfully! Please verify your email.');
       navigate('/verify-email', { state: { email } });
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      
+      const message = err.response?.data?.message || 'Failed to register. Please try again.';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -55,16 +57,6 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Search className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-2xl">
-              Web<span className="text-primary">Crawler</span>
-            </span>
-          </Link>
-        </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1">
@@ -128,23 +120,6 @@ export default function Register() {
                   required
                   disabled={isLoading}
                 />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="terms"
-                  checked={agreeTerms}
-                  onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                />
-                <Label htmlFor="terms" className="text-sm font-normal">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
-                </Label>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (

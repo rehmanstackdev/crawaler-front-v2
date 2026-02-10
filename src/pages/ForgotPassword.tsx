@@ -5,13 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Search, Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Loader2, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import authService from '@/services/auth.Service';
+import { toast } from 'sonner';
+
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,27 +28,22 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
 
-    // Simulate sending reset email (mock - replace with real API call)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsEmailSent(true);
-    setIsLoading(false);
+    try {
+      await authService.forgotPassword({ email });
+      setIsEmailSent(true);
+      toast.success('Password reset link sent! Please check your email.');
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to send reset link. Please try again.';
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isEmailSent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
         <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-                <Search className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-2xl">
-                Web<span className="text-primary">Crawler</span>
-              </span>
-            </Link>
-          </div>
 
           <Card className="border-2">
             <CardContent className="pt-8 pb-6 text-center">
@@ -84,16 +83,6 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Search className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-2xl">
-              Web<span className="text-primary">Crawler</span>
-            </span>
-          </Link>
-        </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">

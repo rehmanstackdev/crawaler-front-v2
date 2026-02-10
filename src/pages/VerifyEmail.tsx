@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Search, Loader2, CheckCircle, Mail, RefreshCw } from 'lucide-react';
+import authService from '@/services/auth.Service';
+import { toast } from 'sonner';
 
 export default function VerifyEmail() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -17,6 +19,7 @@ export default function VerifyEmail() {
   const location = useLocation();
   
   const email = (location.state as { email?: string })?.email || 'your email';
+
 
   useEffect(() => {
     if (countdown > 0) {
@@ -68,18 +71,17 @@ export default function VerifyEmail() {
 
     setIsLoading(true);
 
-    // Simulate verification (mock - replace with real API call)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    // For demo: accept any 6-digit code
-    if (otpValue === '123456' || otpValue.length === 6) {
+    try {
+      await authService.verifyEmail({ otp: otpValue });
+      toast.success('Email verified successfully!');
       setIsVerified(true);
       setTimeout(() => navigate('/login'), 2000);
-    } else {
-      setError('Invalid verification code. Please try again.');
+    } catch (err) {  
+          const message = err.response?.data?.message || 'Verification failed. Please try again.';
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleResend = async () => {
@@ -115,16 +117,6 @@ export default function VerifyEmail() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Search className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-2xl">
-              Web<span className="text-primary">Crawler</span>
-            </span>
-          </Link>
-        </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
@@ -201,10 +193,6 @@ export default function VerifyEmail() {
             </div>
           </CardFooter>
         </Card>
-
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          Demo: Enter any 6 digits (e.g., 123456) to verify
-        </p>
       </div>
     </div>
   );

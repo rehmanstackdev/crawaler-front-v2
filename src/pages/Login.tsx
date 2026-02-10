@@ -1,23 +1,29 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import authService from '@/services/auth.Service';
+import { parseJwt, setToken } from '@/utils/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Search, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  const from = (location.state as { from?: { pathname: string; search?: string; hash?: string } })
+    ?.from;
+  const redirectTo = from
+    ? `${from.pathname || ''}${from.search || ''}${from.hash || ''}`
+    : '/search';
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +31,29 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const response = await authService.login({ email, password });
+      const token =
+        response?.access_token ||
+        response?.token
+
+      if (token) {
+        setToken(JSON.stringify({ access_token: token }));
+      }
+
+      const apiUser = response?.user || response?.data?.user;
+      const tokenPayload = token ? (parseJwt(token) as Record<string, any>) : null;
+      const user = apiUser || {
+        id: String(tokenPayload?.sub || tokenPayload?.id || Date.now()),
+        name: String(tokenPayload?.name || tokenPayload?.fullName || 'User'),
+        email: String(tokenPayload?.email || email),
+        role: (tokenPayload?.role as 'user' | 'admin') || 'user',
+        createdAt: String(tokenPayload?.createdAt || new Date().toISOString()),
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError('Invalid email or password. Try admin@example.com / password123');
+      const message = err.response?.data?.message || 'Failed to login. Please check your credentials and try again.';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -37,16 +62,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Search className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-2xl">
-              Web<span className="text-primary">Crawler</span>
-            </span>
-          </Link>
-        </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1">
@@ -109,15 +124,8 @@ export default function Login() {
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Demo Accounts</span>
-              </div>
             </div>
-            <div className="w-full text-center text-sm text-muted-foreground">
-              <p>Admin: admin@example.com</p>
-              <p>User: user@example.com</p>
-              <p className="mt-1">(Any password with 6+ chars)</p>
-            </div>
+
             <div className="text-center text-sm">
               Don't have an account?{' '}
               <Link to="/register" className="text-primary font-medium hover:underline">

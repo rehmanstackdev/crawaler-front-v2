@@ -67,16 +67,6 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-              <Search className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-2xl">
-              Web<span className="text-primary">Crawler</span>
-            </span>
-          </Link>
-        </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">

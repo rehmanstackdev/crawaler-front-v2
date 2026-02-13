@@ -28,14 +28,14 @@ export default function Landing() {
         <div className="container px-4">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="secondary" className="mb-4">
-              Compare prices across Daraz & OLX
+              Compare prices across Daraz & Temu
             </Badge>
             <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
               Find the Best Deals,{' '}
               <span className="text-primary">Save More</span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-              Search once, compare prices across multiple platforms. Make smart purchasing decisions with real-time price comparisons from Daraz and OLX.
+              Search once, compare prices across multiple platforms. Make smart purchasing decisions with real-time price comparisons from Daraz and Temu.
             </p>
             <form onSubmit={handleSearch} className="mx-auto max-w-xl">
               <div className="relative">
@@ -93,7 +93,7 @@ export default function Landing() {
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">Price Comparison</h3>
                 <p className="text-muted-foreground">
-                  Compare prices from multiple sellers across Daraz and OLX in one view. Find the best deals instantly.
+                  Compare prices from multiple sellers across Daraz and Temu in one view. Find the best deals instantly.
                 </p>
               </CardContent>
             </Card>
@@ -242,3 +242,4 @@ export default function Landing() {
     </MainLayout>
   );
 }
+

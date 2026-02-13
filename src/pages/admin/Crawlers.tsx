@@ -159,7 +159,7 @@ export default function AdminCrawlers() {
                       className={cn(
                         crawler.platform === 'daraz'
                           ? 'border-daraz text-daraz'
-                          : 'border-olx text-olx'
+                          : 'border-temu text-temu'
                       )}
                     >
                       {crawler.platform}
@@ -237,3 +237,4 @@ export default function AdminCrawlers() {
     </div>
   );
 }
+

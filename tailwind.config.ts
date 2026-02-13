@@ -59,9 +59,9 @@ export default {
           DEFAULT: "hsl(var(--daraz))",
           foreground: "hsl(var(--daraz-foreground))",
         },
-        olx: {
-          DEFAULT: "hsl(var(--olx))",
-          foreground: "hsl(var(--olx-foreground))",
+        temu: {
+          DEFAULT: "hsl(var(--temu))",
+          foreground: "hsl(var(--temu-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

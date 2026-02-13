@@ -28,7 +28,7 @@ export default function ProductDetail() {
   }
 
   const darazOffers = product.offers.filter((o) => o.platform === 'daraz');
-  const olxOffers = product.offers.filter((o) => o.platform === 'olx');
+  const temuOffers = product.offers.filter((o) => o.platform === 'temu');
   const sortedOffers = [...product.offers].sort((a, b) => a.price - b.price);
   const bestOffer = sortedOffers[0];
   const savingsPercent = product.highestPrice > product.lowestPrice
@@ -106,8 +106,8 @@ export default function ProductDetail() {
                     <span className="text-sm">{darazOffers.length} Daraz offers</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-olx" />
-                    <span className="text-sm">{olxOffers.length} OLX offers</span>
+                    <span className="h-3 w-3 rounded-full bg-temu" />
+                    <span className="text-sm">{temuOffers.length} Temu offers</span>
                   </div>
                 </div>
               </CardContent>
@@ -148,18 +148,18 @@ export default function ProductDetail() {
                   <span className="h-2 w-2 rounded-full bg-daraz" />
                   Daraz ({darazOffers.length})
                 </TabsTrigger>
-                <TabsTrigger value="olx" className="gap-2">
-                  <span className="h-2 w-2 rounded-full bg-olx" />
-                  OLX ({olxOffers.length})
+                <TabsTrigger value="temu" className="gap-2">
+                  <span className="h-2 w-2 rounded-full bg-temu" />
+                  Temu ({temuOffers.length})
                 </TabsTrigger>
               </TabsList>
 
-              {['all', 'daraz', 'olx'].map((tab) => {
+              {['all', 'daraz', 'temu'].map((tab) => {
                 const offers = tab === 'all' 
                   ? sortedOffers 
                   : tab === 'daraz' 
                     ? darazOffers 
-                    : olxOffers;
+                    : temuOffers;
 
                 return (
                   <TabsContent key={tab} value={tab}>
@@ -179,7 +179,7 @@ export default function ProductDetail() {
                           {offers.map((offer, index) => (
                             <TableRow
                               key={offer.id}
-                              className={cn(index === 0 && tab !== 'olx' && 'bg-success/5')}
+                              className={cn(index === 0 && tab !== 'temu' && 'bg-success/5')}
                             >
                               <TableCell>
                                 <div className="flex items-center gap-3">
@@ -202,10 +202,10 @@ export default function ProductDetail() {
                                   className={cn(
                                     offer.platform === 'daraz'
                                       ? 'border-daraz text-daraz'
-                                      : 'border-olx text-olx'
+                                      : 'border-temu text-temu'
                                   )}
                                 >
-                                  {offer.platform === 'daraz' ? 'Daraz' : 'OLX'}
+                                  {offer.platform === 'daraz' ? 'Daraz' : 'Temu'}
                                 </Badge>
                               </TableCell>
                               <TableCell>
@@ -276,3 +276,4 @@ export default function ProductDetail() {
     </MainLayout>
   );
 }
+

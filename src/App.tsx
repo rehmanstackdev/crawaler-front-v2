@@ -15,6 +15,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import SearchResults from "./pages/SearchResults";
 import ProductDetail from "./pages/ProductDetail";
+import { ProductSearch } from "./pages/ProductSearch";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,7 @@ const App = () => (
               }
             />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/compare" element={<ProductSearch />} />
 
             {/* Protected User Routes */}
             <Route

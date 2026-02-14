@@ -47,7 +47,14 @@ const App = () => (
               }
             />
             <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/compare" element={<ProductSearch />} />
+            <Route
+              path="/compare"
+              element={
+                <ProtectedRoute>
+                  <ProductSearch />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected User Routes */}
             <Route

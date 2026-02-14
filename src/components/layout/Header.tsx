@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Search, Menu, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Search, Menu, User, LogOut, LayoutDashboard, GitCompareArrows } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -62,8 +62,8 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container flex h-16 items-center gap-4 px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/85 backdrop-blur-xl">
+      <div className="container flex h-20 items-center gap-4 px-4">
         {onMenuClick && (
           <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
@@ -71,11 +71,11 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
         )}
 
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Search className="h-4 w-4 text-primary-foreground" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+            <Search className="h-4 w-4 text-primary" />
           </div>
-          <span className="hidden font-bold text-xl sm:inline-block">
-            Web<span className="text-primary">Crawler</span>
+          <span className="hidden font-serif text-xl tracking-wide sm:inline-block">
+            Craw<span className="text-primary">aler</span>
           </span>
         </Link>
 
@@ -85,14 +85,29 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search products across Daraz & Temu..."
+                placeholder="Search products across Daraz & Telemart..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-secondary/50"
+                className="h-11 rounded-full border-border/80 bg-card pl-10 shadow-sm focus-visible:ring-primary/30"
               />
             </div>
           </form>
         )}
+
+        <nav className="hidden items-center gap-2 md:flex">
+          <Button variant="ghost" className="h-9 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary" asChild>
+            <Link to={isAuthenticated ? "/search" : "/login"}>
+              <Search className="mr-1.5 h-4 w-4" />
+              Search Products
+            </Link>
+          </Button>
+          <Button variant="ghost" className="h-9 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary" asChild>
+            <Link to={isAuthenticated ? "/compare" : "/login"}>
+              <GitCompareArrows className="mr-1.5 h-4 w-4" />
+              Compare Products
+            </Link>
+          </Button>
+        </nav>
 
         <div className="flex items-center gap-2 ml-auto">
           {isAuthenticated ? (
@@ -141,10 +156,14 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" asChild>
+              <Button
+                variant="outline"
+                className="rounded-full border-primary/45 bg-card px-6 text-primary hover:bg-primary hover:text-primary-foreground"
+                asChild
+              >
                 <Link to="/login">Sign In</Link>
               </Button>
-              <Button asChild>
+              <Button className="rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90" asChild>
                 <Link to="/register">Sign Up</Link>
               </Button>
             </div>

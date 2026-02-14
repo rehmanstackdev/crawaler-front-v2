@@ -107,7 +107,7 @@ export default function ProductDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="h-3 w-3 rounded-full bg-temu" />
-                    <span className="text-sm">{temuOffers.length} Temu offers</span>
+                    <span className="text-sm">{temuOffers.length} Telemart offers</span>
                   </div>
                 </div>
               </CardContent>
@@ -150,7 +150,7 @@ export default function ProductDetail() {
                 </TabsTrigger>
                 <TabsTrigger value="temu" className="gap-2">
                   <span className="h-2 w-2 rounded-full bg-temu" />
-                  Temu ({temuOffers.length})
+                  Telemart ({temuOffers.length})
                 </TabsTrigger>
               </TabsList>
 
@@ -205,7 +205,7 @@ export default function ProductDetail() {
                                       : 'border-temu text-temu'
                                   )}
                                 >
-                                  {offer.platform === 'daraz' ? 'Daraz' : 'Temu'}
+                                  {offer.platform === 'daraz' ? 'Daraz' : 'Telemart'}
                                 </Badge>
                               </TableCell>
                               <TableCell>

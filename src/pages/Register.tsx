@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Search } from 'lucide-react';
 import authService from '@/services/auth.Service';
 import { toast } from 'sonner';
 
@@ -57,6 +57,14 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
+        <Link to="/" className="mb-4 inline-flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+            <Search className="h-4 w-4 text-primary" />
+          </div>
+          <span className="font-serif text-3xl tracking-wide text-foreground">
+            Craw<span className="text-primary">aler</span>
+          </span>
+        </Link>
 
         <Card className="border-2">
           <CardHeader className="space-y-1">

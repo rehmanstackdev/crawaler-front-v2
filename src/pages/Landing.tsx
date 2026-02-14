@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { MainLayout } from '@/components/layout';
-import { Search, TrendingUp, Shield, Zap, ArrowRight, Star } from 'lucide-react';
+import { Search, ArrowRight, Star, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { mockProductGroups, categories } from '@/data/mockData';
+
+const heroImage =
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=2000&q=80';
 
 export default function Landing() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,223 +26,120 @@ export default function Landing() {
 
   return (
     <MainLayout showSearch={false}>
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/20 py-20 md:py-32">
-        <div className="container px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-4">
-              Compare prices across Daraz & Temu
-            </Badge>
-            <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl">
-              Find the Best Deals,{' '}
-              <span className="text-primary">Save More</span>
-            </h1>
-            <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-              Search once, compare prices across multiple platforms. Make smart purchasing decisions with real-time price comparisons from Daraz and Temu.
-            </p>
-            <form onSubmit={handleSearch} className="mx-auto max-w-xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search for products... (e.g., iPhone 13, MacBook Pro)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-14 pl-12 pr-32 text-lg rounded-full border-2 border-primary/20 focus:border-primary"
-                />
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
-                >
-                  Search
+      <section className="container px-4 py-10 md:py-14">
+        <div className="overflow-hidden rounded-[2rem] border border-border/70 shadow-xl">
+          <div
+            className="relative min-h-[560px] bg-cover bg-center"
+            style={{ backgroundImage: `url(${heroImage})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/10" />
+            <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-between px-6 py-10 md:px-12 md:py-14">
+              <div className="max-w-2xl text-white">
+                <Badge className="mb-4 border-white/40 bg-white/10 text-white">Best Deal Finder</Badge>
+                <h1 className="mb-4 text-4xl font-semibold leading-tight md:text-6xl">
+                  Explore Top Deals
+                  <br />
+                  Across Top Stores
+                </h1>
+                <p className="max-w-xl text-base text-white/85 md:text-lg">
+                  Compare Daraz and Telemart offers in one view, track prices, and buy from the most trusted listings.
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleSearch}
+                className="grid gap-3 rounded-2xl border border-white/30 bg-white/15 p-3 backdrop-blur md:grid-cols-[1fr_auto]"
+              >
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/75" />
+                  <Input
+                    type="search"
+                    placeholder="Search for phones, laptops, headphones..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-12 border-white/25 bg-white/90 pl-11 text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <Button type="submit" className="h-12 rounded-xl bg-primary px-8 text-primary-foreground hover:bg-primary/90">
+                  Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
-            </form>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <span className="text-sm text-muted-foreground">Popular:</span>
-              {['iPhone 15', 'Samsung S24', 'MacBook', 'AirPods'].map((term) => (
-                <Button
-                  key={term}
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => navigate(`/search?q=${encodeURIComponent(term)}`)}
-                >
-                  {term}
-                </Button>
-              ))}
+              </form>
             </div>
           </div>
         </div>
-        {/* Background decorations */}
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 md:py-24">
-        <div className="container px-4">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold">Why Choose WebCrawler?</h2>
-            <p className="text-muted-foreground">Compare, analyze, and save on every purchase</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-colors">
+      <section className="container px-4 py-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { icon: TrendingUp, title: 'Live price comparison', text: 'Compare offers instantly from multiple sources.' },
+            { icon: ShieldCheck, title: 'Reliable sellers', text: 'Review ratings before placing your order.' },
+            { icon: Zap, title: 'Fast discovery', text: 'Search once and find the best value quickly.' },
+          ].map((item) => (
+            <Card key={item.title} className="border-border/70 bg-card/90 shadow-sm">
               <CardContent className="p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <TrendingUp className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Price Comparison</h3>
-                <p className="text-muted-foreground">
-                  Compare prices from multiple sellers across Daraz and Temu in one view. Find the best deals instantly.
-                </p>
+                <item.icon className="mb-3 h-6 w-6 text-primary" />
+                <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.text}</p>
               </CardContent>
             </Card>
-            <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <Zap className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Real-time Updates</h3>
-                <p className="text-muted-foreground">
-                  Our crawlers continuously scan platforms to bring you the latest prices and newest listings.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Trusted Sellers</h3>
-                <p className="text-muted-foreground">
-                  View seller ratings and reviews to make informed decisions. Buy with confidence.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="border-y bg-secondary/30 py-16">
-        <div className="container px-4">
-          <div className="mb-8 text-center">
-            <h2 className="mb-4 text-3xl font-bold">Browse Categories</h2>
-            <p className="text-muted-foreground">Find products in your favorite categories</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant="outline"
-                size="lg"
-                className="rounded-full bg-card hover:bg-primary hover:text-primary-foreground"
-                onClick={() => navigate(`/search?category=${encodeURIComponent(category)}`)}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
+      <section className="container px-4 py-10">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Browse Categories</h2>
+          <Button variant="outline" className="rounded-full border-primary/35" asChild>
+            <Link to="/compare">Open Compare</Link>
+          </Button>
         </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-16 md:py-24">
-        <div className="container px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold">Featured Products</h2>
-              <p className="text-muted-foreground">Popular items with the best deals</p>
-            </div>
-            <Button variant="outline" asChild>
-              <Link to="/search">View All</Link>
+        <div className="flex flex-wrap gap-3">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant="outline"
+              className="rounded-full border-border bg-card hover:border-primary/45 hover:bg-primary/10"
+              onClick={() => navigate(`/search?category=${encodeURIComponent(category)}`)}
+            >
+              {category}
             </Button>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <Link key={product.id} to={`/product/${product.id}`}>
-                <Card className="group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
-                  <div className="aspect-square overflow-hidden bg-secondary/50">
-                    <img
-                      src={product.thumbnail}
-                      alt={product.name}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    />
+          ))}
+        </div>
+      </section>
+
+      <section className="container px-4 pb-16">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Featured Products</h2>
+          <Button className="rounded-full bg-primary hover:bg-primary/90" asChild>
+            <Link to="/search">View all</Link>
+          </Button>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {featuredProducts.map((product) => (
+            <Link key={product.id} to={`/product/${product.id}`}>
+              <Card className="group overflow-hidden border-border/80 bg-card transition-all hover:-translate-y-1 hover:shadow-lg">
+                <div className="aspect-square overflow-hidden bg-secondary/60">
+                  <img
+                    src={product.thumbnail}
+                    alt={product.name}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="mb-2 line-clamp-2 font-medium">{product.name}</h3>
+                  <div className="mb-2 flex items-center gap-1 text-sm text-warning">
+                    <Star className="h-4 w-4 fill-current" />
+                    {product.averageRating}
                   </div>
-                  <CardContent className="p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {product.brand}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {product.totalOffers} offers
-                      </Badge>
-                    </div>
-                    <h3 className="mb-2 font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center gap-1 mb-2">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{product.averageRating}</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-primary">
-                        Rs. {product.lowestPrice.toLocaleString()}
-                      </span>
-                      {product.lowestPrice !== product.highestPrice && (
-                        <span className="text-sm text-muted-foreground">
-                          - {product.highestPrice.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                  <p className="text-lg font-bold text-primary">Rs. {product.lowestPrice.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="bg-primary py-16 text-primary-foreground">
-        <div className="container px-4 text-center">
-          <h2 className="mb-4 text-3xl font-bold">Ready to Start Saving?</h2>
-          <p className="mb-8 text-lg opacity-90">
-            Join thousands of smart shoppers who use WebCrawler to find the best deals.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" variant="secondary" asChild>
-              <Link to="/register">Create Account</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
-              <Link to="/search">Start Searching</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container px-4">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Search className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="font-bold text-xl">
-                Web<span className="text-primary">Crawler</span>
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © 2024 WebCrawler. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </MainLayout>
   );
 }
-

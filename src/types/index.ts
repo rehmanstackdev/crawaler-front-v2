@@ -11,7 +11,7 @@ export interface User {
 // Product types
 export interface ProductOffer {
   id: string;
-  platform: 'daraz' | 'temu';
+  platform: 'daraz' | 'temu' | 'telemart';
   title: string;
   price: number;
   originalPrice?: number;
@@ -45,7 +45,7 @@ export interface ProductGroup {
 export interface SearchFilters {
   priceMin?: number;
   priceMax?: number;
-  platforms: ('daraz' | 'temu')[];
+  platforms: ('daraz' | 'temu' | 'telemart')[];
   minRating?: number;
   categories?: string[];
 }
@@ -59,7 +59,7 @@ export interface SearchSort {
 export interface CrawlerStatus {
   id: string;
   name: string;
-  platform: 'daraz' | 'temu';
+  platform: 'daraz' | 'temu' | 'telemart';
   status: 'running' | 'idle' | 'error' | 'paused';
   lastRun: string;
   nextRun: string;

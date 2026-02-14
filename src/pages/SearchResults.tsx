@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Star, Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
+import { Star, Filter, Grid, List, SlidersHorizontal, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ProductGroup } from '@/types';
 
@@ -32,11 +32,11 @@ export default function SearchResults() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalResults, setTotalResults] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [activePlatform, setActivePlatform] = useState<'daraz' | 'temu'>('daraz');
+  const [activePlatform, setActivePlatform] = useState<'daraz' | 'telemart'>('daraz');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('price-asc');
+  const [sortBy, setSortBy] = useState<SortOption>('rating');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['daraz', 'temu']);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['daraz', 'telemart']);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     categoryParam ? [categoryParam] : []
   );
@@ -69,7 +69,7 @@ export default function SearchResults() {
 
   useEffect(() => {
     setPage(1);
-  }, [query, activePlatform]);
+  }, [query, activePlatform, sortBy]);
 
   useEffect(() => {
     if (!query) {
@@ -86,7 +86,7 @@ export default function SearchResults() {
       setError('');
       try {
         const res = await fetch(
-          `${API_BASE}/search/${activePlatform}?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`,
+          `${API_BASE}/search/${activePlatform}?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&sortBy=${encodeURIComponent(sortBy)}`,
           { signal: controller.signal }
         );
         const json = await res.json();
@@ -104,21 +104,10 @@ export default function SearchResults() {
 
     fetchResults();
     return () => controller.abort();
-  }, [query, page, pageSize, activePlatform]);
+  }, [query, page, pageSize, activePlatform, sortBy]);
 
   const filteredProducts = useMemo(() => {
     let productList = [...products];
-
-    // Filter by search query
-    if (query) {
-      const searchLower = query.toLowerCase();
-      productList = productList.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchLower) ||
-          p.brand.toLowerCase().includes(searchLower) ||
-          p.category.toLowerCase().includes(searchLower)
-      );
-    }
 
     // Filter by category
     if (selectedCategories.length > 0) {
@@ -147,6 +136,7 @@ export default function SearchResults() {
         productList.sort((a, b) => b.lowestPrice - a.lowestPrice);
         break;
       case 'rating':
+        productList = productList.filter((p) => Number(p.averageRating) > 0);
         productList.sort((a, b) => b.averageRating - a.averageRating);
         break;
       case 'offers':
@@ -162,12 +152,6 @@ export default function SearchResults() {
   const togglePlatform = (platform: string) => {
     setSelectedPlatforms((prev) =>
       prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
-    );
-  };
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     );
   };
 
@@ -190,13 +174,13 @@ export default function SearchResults() {
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="temu"
-              checked={selectedPlatforms.includes('temu')}
-              onCheckedChange={() => togglePlatform('temu')}
+              id="telemart"
+              checked={selectedPlatforms.includes('telemart')}
+              onCheckedChange={() => togglePlatform('telemart')}
             />
-            <Label htmlFor="temu" className="flex items-center gap-2">
+            <Label htmlFor="telemart" className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-temu" />
-              Temu
+              Telemart
             </Label>
           </div>
         </div>
@@ -237,30 +221,40 @@ export default function SearchResults() {
     </div>
   );
 
+  const SearchSummary = () => (
+    <div>
+      {query ? (
+        <>
+          <p className="text-sm text-muted-foreground">Results for</p>
+          <h1 className="mb-2 text-lg font-semibold leading-snug break-words">"{query}"</h1>
+        </>
+      ) : (
+        <h1 className="mb-2 text-lg font-semibold leading-snug">
+          {categoryParam ? `${categoryParam}` : 'All Products'}
+        </h1>
+      )}
+      {loading ? (
+        <p className="text-sm text-muted-foreground">
+          Searching {activePlatform === 'daraz' ? 'Daraz' : 'Telemart'}...
+        </p>
+      ) : error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : (
+        <p className="text-sm text-muted-foreground">{paginationText}</p>
+      )}
+    </div>
+  );
+
   return (
     <MainLayout>
-      <div className="container px-4 py-6">
-        {/* Search Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">
-            {query ? `Results for "${query}"` : categoryParam ? `${categoryParam}` : 'All Products'}
-          </h1>
-          {loading ? (
-            <p className="text-muted-foreground">
-              Searching {activePlatform === 'daraz' ? 'Daraz' : 'Temu'}...
-            </p>
-          ) : error ? (
-            <p className="text-destructive">{error}</p>
-          ) : (
-            <p className="text-muted-foreground">{paginationText}</p>
-          )}
-        </div>
-
-        <div className="flex gap-6 min-h-0 lg:h-[calc(100vh-220px)]">
+      <div className="container px-4 py-8">
+        <div className="flex min-h-0 gap-6 lg:min-h-[calc(100vh-180px)]">
           {/* Desktop Filters Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-220px)] overflow-y-auto">
-            <Card>
+          <aside className="hidden w-64 shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:block lg:self-start lg:max-h-[calc(100vh-180px)]">
+            <Card className="border-border/70 bg-card/90">
               <CardContent className="p-4">
+                <SearchSummary />
+                <Separator className="my-4" />
                 <div className="flex items-center gap-2 mb-4">
                   <Filter className="h-4 w-4" />
                   <h2 className="font-semibold">Filters</h2>
@@ -273,7 +267,7 @@ export default function SearchResults() {
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div className="sticky top-24 z-30 mb-4 mt-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/95 p-3 backdrop-blur">
               <div className="flex items-center gap-2">
                 {/* Mobile Filter Button */}
                 <Sheet>
@@ -288,25 +282,37 @@ export default function SearchResults() {
                       <SheetTitle>Filters</SheetTitle>
                     </SheetHeader>
                     <div className="mt-4">
+                      <SearchSummary />
+                      <Separator className="my-4" />
                       <FilterContent />
                     </div>
                   </SheetContent>
                 </Sheet>
 
                 {/* View Mode Toggle */}
-                <div className="flex rounded-lg border p-1">
+                <div className="flex gap-1 rounded-lg border border-border/80 bg-background p-1">
                   <Button
-                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0"
+                    className={cn(
+                      'h-7 w-7 p-0 transition-colors',
+                      viewMode === 'grid'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                    )}
                     onClick={() => setViewMode('grid')}
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0"
+                    className={cn(
+                      'h-7 w-7 p-0 transition-colors',
+                      viewMode === 'list'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                    )}
                     onClick={() => setViewMode('list')}
                   >
                     <List className="h-4 w-4" />
@@ -315,16 +321,16 @@ export default function SearchResults() {
               </div>
 
               <div className="flex items-center gap-3">
-                <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as 'daraz' | 'temu')}>
+                <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as 'daraz' | 'telemart')}>
                   <TabsList>
                     <TabsTrigger value="daraz">Daraz</TabsTrigger>
-                    <TabsTrigger value="temu">Temu</TabsTrigger>
+                    <TabsTrigger value="telemart">Telemart</TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {/* Sort */}
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-48 border-border/80 bg-background">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -337,15 +343,15 @@ export default function SearchResults() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1">
+            <div className="flex-1 pr-1">
             {/* Products Grid/List */}
             {filteredProducts.length === 0 ? (
-              <Card className="p-12 text-center">
+              <Card className="border-border/70 bg-card/90 p-12 text-center">
                 <p className="text-muted-foreground">No products found matching your criteria.</p>
                 <Button variant="outline" className="mt-4" onClick={() => {
                   setSelectedCategories([]);
                   setPriceRange([0, 1000000]);
-                  setSelectedPlatforms(['daraz', 'temu']);
+                  setSelectedPlatforms(['daraz', 'telemart']);
                 }}>
                   Clear Filters
                 </Button>
@@ -359,18 +365,24 @@ export default function SearchResults() {
                       : 'flex flex-col gap-4'
                   )}
                 >
-                  {filteredProducts.map((product) => (
+                  {filteredProducts.map((product) => {
+                    const primaryOffer =
+                      product.offers.find((o) => o.platform === activePlatform) || product.offers[0];
+                    const externalProductUrl = primaryOffer?.productUrl;
+                    const externalPlatformLabel = activePlatform === 'daraz' ? 'Daraz' : 'Telemart';
+
+                    return (
                     <Link key={product.id} to={`/product/${product.id}`}>
                       <Card
                         className={cn(
-                          'group overflow-hidden transition-all hover:shadow-lg',
+                          'group overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-lg',
                           viewMode === 'list' && 'flex'
                         )}
                       >
                         <div
                           className={cn(
                             'overflow-hidden bg-secondary/50',
-                            viewMode === 'grid' ? 'aspect-square' : 'h-40 w-40 shrink-0'
+                            viewMode === 'grid' ? 'aspect-square' : 'w-40 shrink-0 self-stretch'
                           )}
                         >
                           <img
@@ -393,21 +405,28 @@ export default function SearchResults() {
                               {product.offers.some((o) => o.platform === 'daraz') && (
                                 <span className="h-2 w-2 rounded-full bg-daraz" title="Available on Daraz" />
                               )}
-                            {product.offers.some((o) => o.platform === 'temu') && (
-                              <span className="h-2 w-2 rounded-full bg-temu" title="Available on Temu" />
+                            {product.offers.some((o) => o.platform === 'telemart') && (
+                              <span className="h-2 w-2 rounded-full bg-temu" title="Available on Telemart" />
                             )}
                             </div>
                           </div>
-                          <h3 className="mb-2 font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+                          <h3 className="mb-2 font-semibold line-clamp-1 group-hover:text-primary transition-colors">
                             {product.name}
                           </h3>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-warning text-warning" />
-                              <span className="text-sm font-medium">{product.averageRating}</span>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              • {product.totalOffers} offers
+                          <div className="mb-2 flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={`${product.id}-star-${i}`}
+                                className={cn(
+                                  'h-4 w-4',
+                                  i < Math.round(product.averageRating)
+                                    ? 'fill-warning text-warning'
+                                    : 'fill-muted text-muted'
+                                )}
+                              />
+                            ))}
+                            <span className="ml-1 text-sm font-medium text-foreground">
+                              {Number(product.averageRating || 0).toFixed(1)}
                             </span>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -420,10 +439,25 @@ export default function SearchResults() {
                               </span>
                             )}
                           </div>
+                          {externalProductUrl && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="mt-3 w-fit bg-primary px-4 text-primary-foreground hover:bg-primary/90"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                window.open(externalProductUrl, '_blank', 'noopener,noreferrer');
+                              }}
+                            >
+                              Buy on {externalPlatformLabel}
+                              <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
-                  ))}
+                  )})}
                 </div>
 
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -489,5 +523,7 @@ export default function SearchResults() {
     </MainLayout>
   );
 }
+
+
 
 

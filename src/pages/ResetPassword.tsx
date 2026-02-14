@@ -48,18 +48,28 @@ export default function ResetPassword() {
   if (isReset) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
-        <Card className="w-full max-w-md border-2">
-          <CardContent className="pt-8 pb-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle className="h-8 w-8 text-primary" />
+        <div className="w-full max-w-md">
+          <Link to="/" className="mb-4 inline-flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+              <Search className="h-4 w-4 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Password Reset!</h2>
-            <p className="text-muted-foreground mb-4">
-              Your password has been successfully reset. Redirecting to login...
-            </p>
-            <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
-          </CardContent>
-        </Card>
+            <span className="font-serif text-3xl tracking-wide text-foreground">
+              Craw<span className="text-primary">aler</span>
+            </span>
+          </Link>
+          <Card className="w-full max-w-md border-2">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <CheckCircle className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Password Reset!</h2>
+              <p className="text-muted-foreground mb-4">
+                Your password has been successfully reset. Redirecting to login...
+              </p>
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -67,6 +77,14 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
+        <Link to="/" className="mb-4 inline-flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+            <Search className="h-4 w-4 text-primary" />
+          </div>
+          <span className="font-serif text-3xl tracking-wide text-foreground">
+            Craw<span className="text-primary">aler</span>
+          </span>
+        </Link>
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">

@@ -62,18 +62,19 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-4 inline-flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
-            <Search className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-serif text-3xl tracking-wide text-foreground">
-            Craw<span className="text-primary">aler</span>
-          </span>
-        </Link>
-
         <Card className="border-2">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
+            <div className="flex justify-center mb-4">
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+                  <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <span className="font-serif text-2xl sm:text-3xl tracking-wide text-foreground">
+                  Craw<span className="text-primary">aler</span>
+                </span>
+              </div>
+            </div>
+            <CardTitle className="text-xl sm:text-2xl font-bold text-center">Welcome back</CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access your account
             </CardDescription>

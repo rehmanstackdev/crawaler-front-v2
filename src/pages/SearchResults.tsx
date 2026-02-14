@@ -225,29 +225,29 @@ export default function SearchResults() {
     <div>
       {query ? (
         <>
-          <p className="text-sm text-muted-foreground">Results for</p>
-          <h1 className="mb-2 text-lg font-semibold leading-snug break-words">"{query}"</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Results for</p>
+          <h1 className="mb-2 text-base sm:text-lg font-semibold leading-snug break-words">"{query}"</h1>
         </>
       ) : (
-        <h1 className="mb-2 text-lg font-semibold leading-snug">
+        <h1 className="mb-2 text-base sm:text-lg font-semibold leading-snug">
           {categoryParam ? `${categoryParam}` : 'All Products'}
         </h1>
       )}
       {loading ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Searching {activePlatform === 'daraz' ? 'Daraz' : 'Telemart'}...
         </p>
       ) : error ? (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-xs sm:text-sm text-destructive">{error}</p>
       ) : (
-        <p className="text-sm text-muted-foreground">{paginationText}</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">{paginationText}</p>
       )}
     </div>
   );
 
   return (
     <MainLayout>
-      <div className="container px-4 py-8">
+      <div className="container px-2 sm:px-4 py-4 sm:py-8">
         <div className="flex min-h-0 gap-6 lg:min-h-[calc(100vh-180px)]">
           {/* Desktop Filters Sidebar */}
           <aside className="hidden w-64 shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:block lg:self-start lg:max-h-[calc(100vh-180px)]">
@@ -267,13 +267,13 @@ export default function SearchResults() {
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-h-0">
             {/* Toolbar */}
-            <div className="sticky top-24 z-30 mb-4 mt-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/95 p-3 backdrop-blur">
-              <div className="flex items-center gap-2">
+            <div className="sticky top-[72px] sm:top-24 z-30 mb-3 sm:mb-4 mt-4 sm:mt-2 flex flex-wrap items-center justify-between gap-2 sm:gap-4 rounded-xl sm:rounded-2xl border border-border/70 bg-card/95 p-2 sm:p-3 backdrop-blur">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {/* Mobile Filter Button */}
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden">
-                      <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="lg:hidden text-xs sm:text-sm h-8 sm:h-9">
+                      <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                       Filters
                     </Button>
                   </SheetTrigger>
@@ -290,47 +290,47 @@ export default function SearchResults() {
                 </Sheet>
 
                 {/* View Mode Toggle */}
-                <div className="flex gap-1 rounded-lg border border-border/80 bg-background p-1">
+                <div className="flex gap-0.5 sm:gap-1 rounded-lg border border-border/80 bg-background p-0.5 sm:p-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'h-7 w-7 p-0 transition-colors',
+                      'h-6 w-6 sm:h-7 sm:w-7 p-0 transition-colors',
                       viewMode === 'grid'
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
                         : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
                     )}
                     onClick={() => setViewMode('grid')}
                   >
-                    <Grid className="h-4 w-4" />
+                    <Grid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'h-7 w-7 p-0 transition-colors',
+                      'h-6 w-6 sm:h-7 sm:w-7 p-0 transition-colors',
                       viewMode === 'list'
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
                         : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
                     )}
                     onClick={() => setViewMode('list')}
                   >
-                    <List className="h-4 w-4" />
+                    <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as 'daraz' | 'telemart')}>
-                  <TabsList>
-                    <TabsTrigger value="daraz">Daraz</TabsTrigger>
-                    <TabsTrigger value="telemart">Telemart</TabsTrigger>
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as 'daraz' | 'telemart')} className="flex-1 sm:flex-none">
+                  <TabsList className="h-8 sm:h-9">
+                    <TabsTrigger value="daraz" className="text-xs sm:text-sm px-2 sm:px-3">Daraz</TabsTrigger>
+                    <TabsTrigger value="telemart" className="text-xs sm:text-sm px-2 sm:px-3">Telemart</TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {/* Sort */}
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-48 border-border/80 bg-background">
+                  <SelectTrigger className="w-36 sm:w-48 border-border/80 bg-background text-xs sm:text-sm h-8 sm:h-9">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -357,12 +357,12 @@ export default function SearchResults() {
                 </Button>
               </Card>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div
                   className={cn(
                     viewMode === 'grid'
-                      ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'
-                      : 'flex flex-col gap-4'
+                      ? 'grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 justify-items-center sm:justify-items-stretch'
+                      : 'flex flex-col gap-3 sm:gap-4'
                   )}
                 >
                   {filteredProducts.map((product) => {
@@ -372,17 +372,17 @@ export default function SearchResults() {
                     const externalPlatformLabel = activePlatform === 'daraz' ? 'Daraz' : 'Telemart';
 
                     return (
-                    <Link key={product.id} to={`/product/${product.id}`}>
+                    <Link key={product.id} to={`/product/${product.id}`} className="w-full max-w-sm sm:max-w-none">
                       <Card
                         className={cn(
-                          'group overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-lg',
+                          'group overflow-hidden border-border/70 bg-card/95 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/5 hover:shadow-lg w-full',
                           viewMode === 'list' && 'flex'
                         )}
                       >
                         <div
                           className={cn(
                             'overflow-hidden bg-secondary/50',
-                            viewMode === 'grid' ? 'aspect-square' : 'w-40 shrink-0 self-stretch'
+                            viewMode === 'grid' ? 'aspect-square' : 'w-24 sm:w-40 shrink-0 self-stretch'
                           )}
                         >
                           <img
@@ -391,50 +391,50 @@ export default function SearchResults() {
                             className="h-full w-full object-cover transition-transform group-hover:scale-105"
                           />
                         </div>
-                        <CardContent className={cn('p-4', viewMode === 'list' && 'flex-1')}>
-                          <div className="mb-2 flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="text-xs">
+                        <CardContent className={cn('p-3 sm:p-4', viewMode === 'list' && 'flex-1')}>
+                          <div className="mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 sm:py-0.5">
                               {product.offers.some((o) => o.platform === 'daraz')
                                 ? product.offers.find((o) => o.platform === 'daraz')?.seller || 'Unknown'
                                 : product.brand}
                             </Badge>
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 sm:py-0.5">
                               {product.category}
                             </Badge>
                             <div className="flex gap-1">
                               {product.offers.some((o) => o.platform === 'daraz') && (
-                                <span className="h-2 w-2 rounded-full bg-daraz" title="Available on Daraz" />
+                                <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-daraz" title="Available on Daraz" />
                               )}
                             {product.offers.some((o) => o.platform === 'telemart') && (
-                              <span className="h-2 w-2 rounded-full bg-temu" title="Available on Telemart" />
+                              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-temu" title="Available on Telemart" />
                             )}
                             </div>
                           </div>
-                          <h3 className="mb-2 font-semibold line-clamp-1 group-hover:text-primary transition-colors">
+                          <h3 className="mb-1.5 sm:mb-2 text-sm sm:text-base font-semibold line-clamp-2 group-hover:text-primary transition-colors">
                             {product.name}
                           </h3>
-                          <div className="mb-2 flex items-center gap-1">
+                          <div className="mb-1.5 sm:mb-2 flex items-center gap-0.5 sm:gap-1">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={`${product.id}-star-${i}`}
                                 className={cn(
-                                  'h-4 w-4',
+                                  'h-3 w-3 sm:h-4 sm:w-4',
                                   i < Math.round(product.averageRating)
                                     ? 'fill-warning text-warning'
                                     : 'fill-muted text-muted'
                                 )}
                               />
                             ))}
-                            <span className="ml-1 text-sm font-medium text-foreground">
+                            <span className="ml-0.5 sm:ml-1 text-xs sm:text-sm font-medium text-foreground">
                               {Number(product.averageRating || 0).toFixed(1)}
                             </span>
                           </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-lg font-bold text-primary">
+                          <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
+                            <span className="text-base sm:text-lg font-bold text-primary">
                               Rs. {product.lowestPrice.toLocaleString()}
                             </span>
                             {product.lowestPrice !== product.highestPrice && (
-                              <span className="text-sm text-muted-foreground line-through">
+                              <span className="text-xs sm:text-sm text-muted-foreground line-through">
                                 Rs. {product.highestPrice.toLocaleString()}
                               </span>
                             )}
@@ -443,7 +443,7 @@ export default function SearchResults() {
                             <Button
                               type="button"
                               size="sm"
-                              className="mt-3 w-fit bg-primary px-4 text-primary-foreground hover:bg-primary/90"
+                              className="mt-2 sm:mt-3 w-full sm:w-fit bg-primary px-3 sm:px-4 text-xs sm:text-sm h-8 sm:h-9 text-primary-foreground hover:bg-primary/90"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -451,7 +451,7 @@ export default function SearchResults() {
                               }}
                             >
                               Buy on {externalPlatformLabel}
-                              <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                              <ExternalLink className="ml-1 h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             </Button>
                           )}
                         </CardContent>
@@ -460,14 +460,15 @@ export default function SearchResults() {
                   )})}
                 </div>
 
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="text-sm text-muted-foreground">{paginationText}</div>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-3">
+                  <div className="text-[8px] sm:text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] sm:max-w-none">{paginationText}</div>
+                  <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="icon"
                       disabled={page <= 1 || loading}
                       onClick={() => setPage(1)}
+                      className="h-8 w-8 sm:h-9 sm:w-9 text-xs sm:text-sm hidden sm:flex"
                     >
                       {'<<'}
                     </Button>
@@ -475,13 +476,15 @@ export default function SearchResults() {
                       variant="outline"
                       disabled={page <= 1 || loading}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="h-7 sm:h-9 px-1.5 sm:px-4 text-[10px] sm:text-sm"
                     >
-                      Previous
+                      <span className="hidden sm:inline">Previous</span>
+                      <span className="sm:hidden">Prev</span>
                     </Button>
 
                     {paginationItems.map((item, idx) =>
                       item === 'ellipsis' ? (
-                        <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">
+                        <span key={`ellipsis-${idx}`} className="px-0.5 sm:px-2 text-muted-foreground text-[10px] sm:text-sm">
                           ...
                         </span>
                       ) : (
@@ -491,6 +494,7 @@ export default function SearchResults() {
                           size="icon"
                           onClick={() => setPage(item)}
                           disabled={loading}
+                          className="h-7 w-7 sm:h-9 sm:w-9 text-[10px] sm:text-sm"
                         >
                           {item}
                         </Button>
@@ -501,6 +505,7 @@ export default function SearchResults() {
                       variant="outline"
                       disabled={(totalPages > 0 && page >= totalPages) || loading}
                       onClick={() => setPage((p) => p + 1)}
+                      className="h-7 sm:h-9 px-1.5 sm:px-4 text-[10px] sm:text-sm"
                     >
                       Next
                     </Button>
@@ -509,6 +514,7 @@ export default function SearchResults() {
                       size="icon"
                       disabled={(totalPages > 0 && page >= totalPages) || loading}
                       onClick={() => totalPages > 0 && setPage(totalPages)}
+                      className="h-8 w-8 sm:h-9 sm:w-9 text-xs sm:text-sm hidden sm:flex"
                     >
                       {'>>'}
                     </Button>

@@ -49,16 +49,18 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
         <div className="w-full max-w-md">
-          <Link to="/" className="mb-4 inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
-              <Search className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-serif text-3xl tracking-wide text-foreground">
-              Craw<span className="text-primary">aler</span>
-            </span>
-          </Link>
           <Card className="w-full max-w-md border-2">
             <CardContent className="pt-8 pb-8 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+                    <Search className="h-6 w-6 text-primary" />
+                  </div>
+                  <span className="font-serif text-3xl tracking-wide text-foreground">
+                    Craw<span className="text-primary">aler</span>
+                  </span>
+                </div>
+              </div>
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <CheckCircle className="h-8 w-8 text-primary" />
               </div>
@@ -77,21 +79,19 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/10 p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-4 inline-flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
-            <Search className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-serif text-3xl tracking-wide text-foreground">
-            Craw<span className="text-primary">aler</span>
-          </span>
-        </Link>
-
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
-            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-              <Lock className="h-7 w-7 text-primary" />
+            <div className="flex justify-center mb-4">
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
+                  <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <span className="font-serif text-2xl sm:text-3xl tracking-wide text-foreground">
+                  Craw<span className="text-primary">aler</span>
+                </span>
+              </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold">Reset Password</CardTitle>
             <CardDescription>
               Create a new password for your account. Make sure it's at least 6 characters.
             </CardDescription>

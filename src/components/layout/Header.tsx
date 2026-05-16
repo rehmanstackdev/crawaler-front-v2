@@ -1,64 +1,49 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Search, Menu, User, LogOut, LayoutDashboard, GitCompareArrows } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Search, Menu, GitCompareArrows, LogOut, Shield, User as UserIcon } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { SearchSuggestInput } from '@/components/SearchSuggestInput';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
   onMenuClick?: () => void;
   showSearch?: boolean;
 }
 
+const initialsOf = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('') || '?';
+
 export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
   const navigate = useNavigate();
+  const { user, isAdmin, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileName, setProfileName] = useState('');
-  const [profileEmail, setProfileEmail] = useState('');
 
-  const storedUser = localStorage.getItem('user');
-  const user = storedUser ? JSON.parse(storedUser) : null;
-  const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'admin';
-
-  useEffect(() => {
-    if (user) {
-      setProfileName(user.name || '');
-      setProfileEmail(user.email || '');
-    }
-  }, [user?.name, user?.email]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
+  const submit = (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    setSearchQuery(trimmed);
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('access_token');
-    navigate('/');
-  };
-
-  const handleProfileSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const nextUser = { ...user, name: profileName, email: profileEmail };
-    localStorage.setItem('user', JSON.stringify(nextUser));
-    toast.success('Profile updated successfully');
-    setProfileOpen(false);
+    logout();
+    toast.success('Signed out successfully');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -70,7 +55,7 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
           </Button>
         )}
 
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/compare" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/35 bg-primary/10">
             <Search className="h-4 w-4 text-primary" />
           </div>
@@ -80,131 +65,91 @@ export function Header({ onMenuClick, showSearch = true }: HeaderProps) {
         </Link>
 
         {showSearch && (
-          <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products across Daraz & Telemart..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-11 rounded-full border-border/80 bg-card pl-10 shadow-sm focus-visible:ring-primary/30"
-              />
-            </div>
-          </form>
+          <div className="flex-1 max-w-xl mx-4">
+            <SearchSuggestInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSubmit={submit}
+              placeholder="Search products across Daraz & Telemart..."
+              className="h-11 rounded-full border-border/80 bg-card shadow-sm focus-visible:ring-primary/30"
+            />
+          </div>
         )}
 
-        <nav className="hidden items-center gap-2 md:flex">
+        <nav className="hidden items-center gap-2 md:flex ml-auto">
           <Button variant="ghost" className="h-9 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary" asChild>
-            <Link to={isAuthenticated ? "/search" : "/login"}>
+            <Link to="/search">
               <Search className="mr-1.5 h-4 w-4" />
               Search Products
             </Link>
           </Button>
           <Button variant="ghost" className="h-9 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary" asChild>
-            <Link to={isAuthenticated ? "/compare" : "/login"}>
+            <Link to="/compare">
               <GitCompareArrows className="mr-1.5 h-4 w-4" />
               Compare Products
             </Link>
           </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              className="h-9 rounded-full px-3 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              asChild
+            >
+              <Link to="/admin">
+                <Shield className="mr-1.5 h-4 w-4" />
+                Admin
+              </Link>
+            </Button>
+          )}
         </nav>
 
-        <div className="flex items-center gap-2 ml-auto">
-          {isAuthenticated ? (
+        <div className="ml-auto flex items-center gap-2 md:ml-0">
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user?.name?.charAt(0).toUpperCase()}
+                <Button variant="ghost" className="h-10 gap-2 rounded-full px-2 pr-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {initialsOf(user.name)}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden text-sm font-medium md:inline">{user.name.split(' ')[0]}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-                </div>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="font-medium leading-none">{user.name}</div>
+                  <div className="mt-1 text-xs font-normal text-muted-foreground">{user.email}</div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <button
-                    type="button"
-                    className="flex w-full items-center cursor-pointer"
-                    onClick={() => setProfileOpen(true)}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </button>
-                </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin" className="cursor-pointer">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <Shield className="mr-2 h-4 w-4" />
                       Admin Dashboard
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link to="/compare" className="cursor-pointer">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    My searches
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                className="rounded-full border-primary/45 bg-card px-6 text-primary hover:bg-primary hover:text-primary-foreground"
-                asChild
-              >
-                <Link to="/login">Sign In</Link>
-              </Button>
-              <Button className="rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90" asChild>
-                <Link to="/register">Sign Up</Link>
-              </Button>
-            </div>
+            <Button asChild size="sm" className="rounded-full">
+              <Link to="/login">Sign in</Link>
+            </Button>
           )}
         </div>
       </div>
-
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Profile</DialogTitle>
-            <DialogDescription>Update your name and email.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleProfileSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="profileName">Full Name</Label>
-              <Input
-                id="profileName"
-                value={profileName}
-                onChange={(e) => setProfileName(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profileEmail">Email</Label>
-              <Input
-                id="profileEmail"
-                type="email"
-                value={profileEmail}
-                onChange={(e) => setProfileEmail(e.target.value)}
-                required
-                disabled
-              />
-            </div>
-            <DialogFooter>
-              <Button type="submit">Save</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </header>
   );
 }
-

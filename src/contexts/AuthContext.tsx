@@ -1,99 +1,126 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
-import authService from '@/services/auth.Service';
-import { parseJwt, removeToken, setToken } from '@/utils/utils';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { authService } from '@/services/authService';
+import {
+  getAuthToken,
+  setAuthToken,
+  setUnauthorizedHandler,
+} from '@/lib/apiClient';
+import type { AuthUser } from '@/types/auth';
 
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
+interface AuthContextValue {
+  user: AuthUser | null;
+  token: string | null;
+  isInitializing: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (input: { email: string; password: string }) => Promise<AuthUser>;
+  register: (input: { name: string; email: string; password: string }) => Promise<AuthUser>;
   logout: () => void;
+  refresh: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setTokenState] = useState<string | null>(() => getAuthToken());
+  const [isInitializing, setIsInitializing] = useState<boolean>(!!getAuthToken());
+  const logoutRef = useRef<() => void>(() => undefined);
 
-  useEffect(() => {
-    // Check for stored auth on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+  const persistToken = useCallback((nextToken: string | null) => {
+    setAuthToken(nextToken);
+    setTokenState(nextToken);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await authService.loginUser({ email, password });
-    const token =
-      response?.access_token ||
-      response?.token ||
-      response?.data?.access_token ||
-      response?.data?.token;
-
-    if (token) {
-      setToken(JSON.stringify({ access_token: token }));
-    }
-
-    const apiUser = response?.user || response?.data?.user;
-    const tokenPayload = token ? (parseJwt(token) as Record<string, any>) : null;
-
-    const nextUser: User = apiUser || {
-      id: String(tokenPayload?.sub || tokenPayload?.id || Date.now()),
-      name: String(tokenPayload?.name || tokenPayload?.fullName || 'User'),
-      email: String(tokenPayload?.email || email),
-      role: (tokenPayload?.role as 'user' | 'admin') || 'user',
-      createdAt: String(tokenPayload?.createdAt || new Date().toISOString()),
-    };
-
-    setUser(nextUser);
-    localStorage.setItem('user', JSON.stringify(nextUser));
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    const newUser: User = {
-      id: String(Date.now()),
-      name,
-      email,
-      role: 'user',
-      createdAt: new Date().toISOString(),
-    };
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
+    persistToken(null);
     setUser(null);
-    localStorage.removeItem('user');
-    removeToken();
-  };
+  }, [persistToken]);
+  logoutRef.current = logout;
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
-        login,
-        register,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  useEffect(() => {
+    setUnauthorizedHandler(() => logoutRef.current());
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
+  useEffect(() => {
+    const existing = getAuthToken();
+    if (!existing) {
+      setIsInitializing(false);
+      return;
+    }
+    let cancelled = false;
+    authService
+      .me()
+      .then((me) => {
+        if (!cancelled) setUser(me);
+      })
+      .catch(() => {
+        if (!cancelled) logout();
+      })
+      .finally(() => {
+        if (!cancelled) setIsInitializing(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [logout]);
+
+  const login = useCallback<AuthContextValue['login']>(
+    async (input) => {
+      const result = await authService.login(input);
+      persistToken(result.token);
+      setUser(result.user);
+      return result.user;
+    },
+    [persistToken],
   );
-}
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+  const register = useCallback<AuthContextValue['register']>(
+    async (input) => {
+      const result = await authService.register(input);
+      persistToken(result.token);
+      setUser(result.user);
+      return result.user;
+    },
+    [persistToken],
+  );
+
+  const refresh = useCallback(async () => {
+    if (!getAuthToken()) return;
+    const me = await authService.me();
+    setUser(me);
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      token,
+      isInitializing,
+      isAuthenticated: !!user,
+      isAdmin: user?.role === 'admin',
+      login,
+      register,
+      logout,
+      refresh,
+    }),
+    [user, token, isInitializing, login, register, logout, refresh],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+};

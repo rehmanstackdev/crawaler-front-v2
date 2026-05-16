@@ -6,7 +6,7 @@ interface MainLayoutProps {
   showSearch?: boolean;
 }
 
-export function MainLayout({ children, showSearch = true }: MainLayoutProps) {
+export function MainLayout({ children, showSearch = false }: MainLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header showSearch={showSearch} />

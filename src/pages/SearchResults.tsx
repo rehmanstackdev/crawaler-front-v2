@@ -1,5 +1,5 @@
-﻿import { useEffect, useState, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+﻿import { useEffect, useRef, useState, useMemo } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,18 +12,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Star, Filter, Grid, List, SlidersHorizontal, ExternalLink } from 'lucide-react';
+import { Star, Filter, Grid, List, SlidersHorizontal, ExternalLink, Search, ImagePlus, X, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchSuggestInput } from '@/components/SearchSuggestInput';
+import { searchProductsByImage } from '@/services/productService';
+import { api } from '@/lib/apiClient';
+import { toast } from 'sonner';
 import type { ProductGroup } from '@/types';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'price-asc' | 'price-desc' | 'rating' | 'offers';
-const API_BASE = import.meta.env.VITE_API_URL;
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const query = searchParams.get('q') || '';
   const categoryParam = searchParams.get('category') || '';
+
+  const [localQuery, setLocalQuery] = useState(query);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isImageSearching, setIsImageSearching] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [products, setProducts] = useState<ProductGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,6 +79,56 @@ export default function SearchResults() {
     return items;
   }, [page, totalPages]);
 
+  useEffect(() => { setLocalQuery(query); }, [query]);
+
+  useEffect(() => {
+    if (!imageFile) { setImagePreview(null); return; }
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
+
+  const handleTextSearch = (term?: string) => {
+    const next = (term ?? localQuery).trim();
+    if (next) navigate(`/search?q=${encodeURIComponent(next)}`);
+  };
+
+  const handleImagePicked = async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Please choose an image file.'); return; }
+    if (file.size > MAX_IMAGE_BYTES) { toast.error('Image must be 5MB or smaller.'); return; }
+    setImageFile(file);
+    setIsImageSearching(true);
+    try {
+      const result = await searchProductsByImage(file);
+      if (result?.derivedQuery) {
+        setLocalQuery(result.derivedQuery);
+        toast.success(`Searched as: ${result.derivedQuery}`);
+        navigate(`/search?q=${encodeURIComponent(result.derivedQuery)}`);
+      }
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        (err as Error)?.message ||
+        'Image search failed.';
+      toast.error(msg);
+      setImageFile(null);
+    } finally {
+      setIsImageSearching(false);
+    }
+  };
+
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImagePicked(file);
+    e.target.value = '';
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleImagePicked(file);
+  };
+
   useEffect(() => {
     setPage(1);
   }, [query, activePlatform, sortBy]);
@@ -85,17 +147,17 @@ export default function SearchResults() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(
-          `${API_BASE}/search/${activePlatform}?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}&sortBy=${encodeURIComponent(sortBy)}`,
-          { signal: controller.signal }
-        );
-        const json = await res.json();
+        const res = await api.get(`/search/${activePlatform}`, {
+          params: { q: query, page, pageSize, sortBy },
+          signal: controller.signal,
+        });
+        const json = res.data;
         setProducts(json?.data?.products || []);
         setTotalPages(Number(json?.data?.pagination?.totalPages) || 0);
         setTotalResults(Number(json?.data?.pagination?.totalResults) || 0);
         setPageSize(Number(json?.data?.pagination?.pageSize) || pageSize);
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
+      } catch (err: unknown) {
+        if ((err as { name?: string })?.name === 'CanceledError') return;
         setError('Failed to load results.');
       } finally {
         setLoading(false);
@@ -136,7 +198,6 @@ export default function SearchResults() {
         productList.sort((a, b) => b.lowestPrice - a.lowestPrice);
         break;
       case 'rating':
-        productList = productList.filter((p) => Number(p.averageRating) > 0);
         productList.sort((a, b) => b.averageRating - a.averageRating);
         break;
       case 'offers':
@@ -247,6 +308,99 @@ export default function SearchResults() {
 
   return (
     <MainLayout>
+      <div className="container px-2 sm:px-4 pt-6 pb-2">
+        <div className="rounded-3xl border border-border/70 bg-card/95 p-5 shadow-lg md:p-6">
+          <div className="flex flex-col gap-3 md:flex-row">
+            <SearchSuggestInput
+              value={localQuery}
+              onChange={setLocalQuery}
+              onSubmit={(term) => handleTextSearch(term)}
+              placeholder="Search products across Daraz & Telemart..."
+              className="h-12 text-base"
+            />
+            <Button
+              onClick={() => handleTextSearch()}
+              disabled={isImageSearching}
+              className="h-12 rounded-xl bg-primary px-8 text-primary-foreground hover:bg-primary/90 md:min-w-36"
+            >
+              <Search className="w-5 h-5 mr-2" />
+              Search
+            </Button>
+          </div>
+
+          <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+            <div className="h-px flex-1 bg-border/70" />
+            <span>or search visually</span>
+            <div className="h-px flex-1 bg-border/70" />
+          </div>
+
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileInputChange} />
+          {!imageFile ? (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={onDrop}
+              className="group flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed border-border/70 bg-gradient-to-br from-background/60 to-primary/5 px-5 py-4 transition hover:border-primary/60 hover:from-primary/5 hover:to-primary/10"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:scale-105">
+                <ImagePlus className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">Search by image</span>
+                  <span className="hidden rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary sm:inline-flex">
+                    <Sparkles className="mr-1 h-3 w-3" />AI-powered
+                  </span>
+                </div>
+                <p className="mt-0.5 text-sm text-muted-foreground">Drag & drop, or click to upload — JPG, PNG, WEBP (max 5MB)</p>
+              </div>
+              <Button type="button" variant="outline" className="hidden shrink-0 rounded-xl sm:inline-flex"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                <ImagePlus className="mr-2 h-4 w-4" />Choose file
+              </Button>
+            </div>
+          ) : (
+            <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-background/80 to-primary/5 p-4">
+              <div className="flex items-center gap-4">
+                <div className="relative shrink-0">
+                  {imagePreview && (
+                    <img src={imagePreview} alt="Uploaded preview" className="h-20 w-20 rounded-xl border border-border/60 object-cover shadow-sm" />
+                  )}
+                  {isImageSearching && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-primary/20 backdrop-blur-[1px]">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {isImageSearching ? (
+                    <>
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />Analysing image with AI…
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">Identifying brand, model and key specs</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />AI-detected product
+                      </div>
+                      <p className="mt-1 truncate text-sm font-medium">{imageFile.name}</p>
+                    </>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => { setImageFile(null); }} disabled={isImageSearching}
+                  aria-label="Remove image" className="shrink-0 rounded-full hover:bg-destructive/10 hover:text-destructive">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       <div className="container px-2 sm:px-4 py-4 sm:py-8">
         <div className="flex min-h-0 gap-6 lg:min-h-[calc(100vh-180px)]">
           {/* Desktop Filters Sidebar */}

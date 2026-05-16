@@ -1,215 +1,297 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
+import { Loader2, RefreshCw, Search, Shield, Users as UsersIcon } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { MainLayout } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Package,
-  Users,
-  Search,
-  Bot,
-  TrendingUp,
-  AlertTriangle,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
-import { mockAdminStats, mockCrawlers, mockLogs } from '@/data/mockData';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { adminService } from '@/services/adminService';
+import { useAuth } from '@/contexts/AuthContext';
+import type { AuthUser } from '@/types/auth';
 
-export default function AdminDashboard() {
-  const stats = mockAdminStats;
-  const recentLogs = mockLogs.slice(0, 5);
-  const activeCrawlers = mockCrawlers.filter((c) => c.status === 'running');
+const PAGE_SIZE = 20;
 
-  const statCards = [
-    {
-      title: 'Total Products',
-      value: stats.totalProducts.toLocaleString(),
-      change: '+12.5%',
-      trend: 'up',
-      icon: Package,
-      description: 'Products in database',
-    },
-    {
-      title: 'Total Users',
-      value: stats.totalUsers.toLocaleString(),
-      change: '+8.2%',
-      trend: 'up',
-      icon: Users,
-      description: 'Registered users',
-    },
-    {
-      title: 'Total Searches',
-      value: stats.totalSearches.toLocaleString(),
-      change: '+23.1%',
-      trend: 'up',
-      icon: Search,
-      description: 'All time searches',
-    },
-    {
-      title: 'Active Crawlers',
-      value: stats.activeCrawlers.toString(),
-      change: `-${5 - stats.activeCrawlers}`,
-      trend: stats.activeCrawlers >= 3 ? 'up' : 'down',
-      icon: Bot,
-      description: 'Currently running',
-    },
-  ];
+interface PendingToggle {
+  user: AuthUser;
+  nextValue: boolean;
+}
+
+export const AdminDashboard = () => {
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState<AuthUser[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingToggle | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await adminService.listUsers({
+        page: 1,
+        limit: PAGE_SIZE,
+        search: debouncedSearch || undefined,
+      });
+      setUsers(data.users);
+      setTotal(data.pagination.total);
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Failed to load users'
+        : 'Failed to load users';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const stats = useMemo(() => {
+    const active = users.filter((u) => u.isActive).length;
+    const admins = users.filter((u) => u.role === 'admin').length;
+    return { active, inactive: users.length - active, admins };
+  }, [users]);
+
+  const requestToggle = (user: AuthUser, nextValue: boolean) => {
+    setPending({ user, nextValue });
+  };
+
+  const confirmToggle = async () => {
+    if (!pending) return;
+    const { user, nextValue } = pending;
+    setUpdatingId(user._id);
+    setPending(null);
+    try {
+      const updated = await adminService.setUserStatus(user._id, nextValue);
+      setUsers((prev) => prev.map((u) => (u._id === updated._id ? updated : u)));
+      toast.success(`${updated.name} has been ${nextValue ? 'activated' : 'deactivated'}`);
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Update failed'
+        : 'Update failed';
+      toast.error(message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your platform statistics</p>
-      </div>
+    <MainLayout showSearch={false}>
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
+        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="mb-1.5 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+              <Shield className="h-3.5 w-3.5 text-primary" />
+              Admin
+            </div>
+            <h1 className="text-3xl font-semibold text-foreground md:text-4xl">Dashboard</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage user accounts and access
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <StatPill label="Users on page" value={users.length} />
+            <StatPill label="Active" value={stats.active} tone="success" />
+            <StatPill label="Inactive" value={stats.inactive} tone="muted" />
+            <StatPill label="Total" value={total} tone="primary" />
+          </div>
+        </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center gap-1 text-xs">
-                {stat.trend === 'up' ? (
-                  <ArrowUpRight className="h-3 w-3 text-success" />
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="users">
+              <UsersIcon className="mr-2 h-4 w-4" />
+              Users
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="users" className="space-y-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name or email…"
+                  className="pl-9"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void load()}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <ArrowDownRight className="h-3 w-3 text-destructive" />
+                  <RefreshCw className="mr-2 h-4 w-4" />
                 )}
-                <span
-                  className={cn(
-                    stat.trend === 'up' ? 'text-success' : 'text-destructive'
+                Refresh
+              </Button>
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Active</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading && users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center">
+                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+                      </TableCell>
+                    </TableRow>
+                  ) : users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
+                        No users match this search.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    users.map((u) => {
+                      const isSelf = currentUser?._id === u._id;
+                      return (
+                        <TableRow key={u._id}>
+                          <TableCell className="font-medium">
+                            {u.name}
+                            {isSelf && (
+                              <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
+                              {u.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={u.isActive ? 'outline' : 'destructive'}>
+                              {u.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(u.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="inline-flex items-center gap-2">
+                              {updatingId === u._id && (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                              )}
+                              <Switch
+                                checked={u.isActive}
+                                disabled={isSelf || updatingId === u._id}
+                                onCheckedChange={(value) => requestToggle(u, value)}
+                                aria-label={`Toggle active for ${u.name}`}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
-                >
-                  {stat.change}
-                </span>
-                <span className="text-muted-foreground">from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Crawler Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              Crawler Status
-            </CardTitle>
-            <CardDescription>Active crawlers and their performance</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {mockCrawlers.slice(0, 4).map((crawler) => (
-              <div key={crawler.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        'h-2 w-2 rounded-full',
-                        crawler.status === 'running' && 'bg-success animate-pulse',
-                        crawler.status === 'idle' && 'bg-muted-foreground',
-                        crawler.status === 'error' && 'bg-destructive',
-                        crawler.status === 'paused' && 'bg-warning'
-                      )}
-                    />
-                    <span className="font-medium text-sm">{crawler.name}</span>
-                  </div>
-                  <Badge
-                    variant={
-                      crawler.status === 'running'
-                        ? 'default'
-                        : crawler.status === 'error'
-                        ? 'destructive'
-                        : 'secondary'
-                    }
-                  >
-                    {crawler.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{crawler.productsProcessed.toLocaleString()} products</span>
-                  <span>Success: {crawler.successRate}%</span>
-                </div>
-                <Progress value={crawler.successRate} className="h-1" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Recent Logs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>Latest system logs and events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentLogs.map((log) => (
-                <div key={log.id} className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      'mt-0.5 h-2 w-2 rounded-full shrink-0',
-                      log.level === 'info' && 'bg-primary',
-                      log.level === 'warning' && 'bg-warning',
-                      log.level === 'error' && 'bg-destructive'
-                    )}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{log.message}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{log.source}</span>
-                      <span>•</span>
-                      <span>{format(new Date(log.timestamp), 'HH:mm:ss')}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                </TableBody>
+              </Table>
             </div>
-          </CardContent>
-        </Card>
+
+            {total > users.length && (
+              <p className="text-center text-xs text-muted-foreground">
+                Showing {users.length} of {total} users. (Pagination coming soon.)
+              </p>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Today's Summary */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Products Crawled Today
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-success">
-              +{stats.productsToday.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              New products added to the database
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Errors Today
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-destructive">{stats.errorsToday}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Crawling errors in the last 24 hours
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <AlertDialog open={!!pending} onOpenChange={(open) => !open && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.nextValue ? 'Activate user?' : 'Deactivate user?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending?.nextValue ? (
+                <>Activating <strong>{pending.user.name}</strong> will allow them to log in again.</>
+              ) : (
+                <>Deactivating <strong>{pending?.user.name}</strong> will immediately block them from logging in or using the app.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggle}>
+              {pending?.nextValue ? 'Activate' : 'Deactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </MainLayout>
+  );
+};
+
+const StatPill = ({
+  label,
+  value,
+  tone = 'default',
+}: {
+  label: string;
+  value: number | string;
+  tone?: 'default' | 'success' | 'muted' | 'primary';
+}) => {
+  const toneClass =
+    tone === 'success'
+      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+      : tone === 'muted'
+        ? 'border-border bg-muted/40 text-muted-foreground'
+        : tone === 'primary'
+          ? 'border-primary/30 bg-primary/10 text-primary'
+          : 'border-border bg-card text-foreground';
+  return (
+    <div className={`rounded-full border px-3 py-1.5 text-xs font-medium ${toneClass}`}>
+      <span className="opacity-70">{label}: </span>
+      <span className="font-semibold">{value}</span>
     </div>
   );
-}
+};
+
+export default AdminDashboard;

@@ -2,91 +2,61 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { AdminLayout } from "@/components/layout/AdminLayout";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Pages
 import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import VerifyEmail from "./pages/VerifyEmail";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 import SearchResults from "./pages/SearchResults";
 import ProductDetail from "./pages/ProductDetail";
 import { ProductSearch } from "./pages/ProductSearch";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
-// Admin Pages
-import { AdminDashboard, AdminCrawlers, AdminLogs, AdminUsers } from "./pages/admin";
+// Auth pages
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import VerifyOtp from "./pages/auth/VerifyOtp";
+import ResetPassword from "./pages/auth/ResetPassword";
+
+// Admin
+import AdminDashboard from "./pages/admin/Dashboard";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Sonner />
-        <BrowserRouter>
+    <TooltipProvider>
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
-            {/* Public Routes */}
+            {/* Public routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/search"
-              element={
-                <ProtectedRoute>
-                  <SearchResults />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route
-              path="/compare"
-              element={
-                <ProtectedRoute>
-                  <ProductSearch />
-                </ProtectedRoute>
-              }
-            />
 
-            {/* Protected User Routes */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="crawlers" element={<AdminCrawlers />} />
-              <Route path="logs" element={<AdminLogs />} />
-              <Route path="users" element={<AdminUsers />} />
+            {/* Protected app routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/compare" element={<ProductSearch />} />
             </Route>
 
-            {/* Catch-all */}
+            {/* Admin-only */}
+            <Route element={<ProtectedRoute requireAdmin />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
